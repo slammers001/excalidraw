@@ -17,22 +17,25 @@ import type { Radians } from "@excalidraw/math";
 import type { MarkOptional, Merge } from "@excalidraw/common/utility-types";
 
 import {
-  getElementAbsoluteCoords,
-  getResizedElementAbsoluteCoords,
-} from "./bounds";
+  ExcalidrawGenericElement,
+  ExcalidrawSurveyElement,
+  createSurveyOption,
+} from "./types";
 import { newElementWith } from "./mutateElement";
 import { getBoundTextMaxWidth } from "./textElement";
 import { normalizeText, measureText } from "./textMeasurements";
 import { wrapText } from "./textWrapping";
 
-import { isLineElement } from "./typeChecks";
+import {
+  isLineElement,
+} from "./typeChecks";
+import { getElementAbsoluteCoords, getResizedElementAbsoluteCoords } from "./bounds";
 
 import type {
   ExcalidrawElement,
   ExcalidrawImageElement,
   ExcalidrawTextElement,
   ExcalidrawLinearElement,
-  ExcalidrawGenericElement,
   NonDeleted,
   TextAlign,
   VerticalAlign,
@@ -70,10 +73,18 @@ export type ElementConstructorOpts = MarkOptional<
   | "roughness"
   | "strokeWidth"
   | "roundness"
-  | "locked"
   | "opacity"
+  | "locked"
   | "customData"
 >;
+
+export type SurveyElementConstructorOpts = ElementConstructorOpts & {
+  id?: string;
+  question: string;
+  options: string[];
+  allowMultipleVotes?: boolean;
+  isAnonymous?: boolean;
+};
 
 const _newElementBase = <T extends ExcalidrawElement>(
   type: T["type"],
@@ -161,6 +172,61 @@ export const newElement = (
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawGenericElement> =>
   _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+
+export const newSurveyElement = (
+  opts: SurveyElementConstructorOpts,
+): NonDeleted<ExcalidrawSurveyElement> => {
+  const {
+    x,
+    y,
+    width,
+    height,
+    question,
+    options,
+    allowMultipleVotes = false,
+    isAnonymous = false,
+    ...rest
+  } = opts;
+
+  const element: ExcalidrawSurveyElement = {
+    id: rest.id ?? randomId(),
+    type: "survey",
+    x,
+    y,
+    width: width!,
+    height: height!,
+    angle: 0 as Radians,
+    strokeColor: rest.strokeColor || "#000000",
+    backgroundColor: rest.backgroundColor || "#ffffff",
+    fillStyle: rest.fillStyle || "solid",
+    strokeWidth: rest.strokeWidth || 2,
+    strokeStyle: rest.strokeStyle || "solid",
+    roughness: rest.roughness || 1,
+    opacity: rest.opacity || 100,
+    groupIds: rest.groupIds || [],
+    frameId: rest.frameId || null,
+    index: rest.index || null,
+    roundness: rest.roundness || null,
+    seed: rest.seed ?? randomInteger(),
+    version: rest.version || 1,
+    versionNonce: rest.versionNonce ?? 0,
+    isDeleted: false as false,
+    boundElements: rest.boundElements || null,
+    updated: getUpdatedTimestamp(),
+    link: rest.link || null,
+    locked: rest.locked || false,
+    customData: rest.customData,
+    // Survey-specific properties
+    question,
+    options: options.map(createSurveyOption),
+    allowMultipleVotes,
+    isAnonymous,
+    votes: [],
+    createdAt: Date.now(),
+  };
+
+  return element;
+};
 
 export const newEmbeddableElement = (
   opts: {

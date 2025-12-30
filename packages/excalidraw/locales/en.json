@@ -300,6 +300,7 @@
     "rectangle": "Rectangle",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
+    "survey": "Survey",
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",
@@ -332,6 +333,7 @@
     "magicframe": "Wireframe to code",
     "embeddable": "Web Embed",
     "selection": "Selection",
+    "survey": "Survey",
     "iframe": "IFrame"
   },
   "headings": {

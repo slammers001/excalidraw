@@ -17,6 +17,7 @@ import {
   newLinearElement,
   newMagicFrameElement,
   newTextElement,
+  createSurveyElement,
 } from "@excalidraw/element";
 
 import { isLinearElementType } from "@excalidraw/element";
@@ -28,6 +29,7 @@ import { FONT_SIZES } from "@excalidraw/common";
 import type {
   ExcalidrawElement,
   ExcalidrawGenericElement,
+  ExcalidrawSurveyElement,
   ExcalidrawTextElement,
   ExcalidrawLinearElement,
   ExcalidrawFreeDrawElement,
@@ -205,6 +207,11 @@ export class API {
     fileId?: T extends "image" ? string : never;
     scale?: T extends "image" ? ExcalidrawImageElement["scale"] : never;
     status?: T extends "image" ? ExcalidrawImageElement["status"] : never;
+    // survey props
+    question?: T extends "survey" ? string : never;
+    options?: T extends "survey" ? string[] : never;
+    allowMultipleVotes?: T extends "survey" ? boolean : never;
+    isAnonymous?: T extends "survey" ? boolean : never;
     startBinding?: T extends "arrow"
       ? ExcalidrawArrowElement["startBinding"] | ExcalidrawElbowArrowElement["startBinding"]
       : never;
@@ -231,6 +238,8 @@ export class API {
     ? ExcalidrawFrameElement
     : T extends "magicframe"
     ? ExcalidrawMagicFrameElement
+    : T extends "survey"
+    ? ExcalidrawSurveyElement
     : ExcalidrawGenericElement => {
     let element: Mutable<ExcalidrawElement> = null!;
 
@@ -362,6 +371,9 @@ export class API {
         break;
       case "magicframe":
         element = newMagicFrameElement({ ...base, width, height });
+        break;
+      case "survey":
+        element = createSurveyElement(base as any, rest.question || "Survey Question", rest.options || ["Option 1", "Option 2"]);
         break;
       default:
         assertNever(

@@ -133,6 +133,7 @@ import {
   newImageElement,
   newLinearElement,
   newTextElement,
+  newSurveyElement,
   refreshTextDimensions,
   deepCopyElement,
   duplicateElements,
@@ -8688,7 +8689,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "survey",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {
@@ -8700,7 +8702,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private createGenericElementOnPointerDown = (
-    elementType: ExcalidrawGenericElement["type"] | "embeddable",
+    elementType: ExcalidrawGenericElement["type"] | "embeddable" | "survey",
     pointerDownState: PointerDownState,
   ): void => {
     const [gridX, gridY] = getGridPoint(
@@ -8736,6 +8738,12 @@ class App extends React.Component<AppProps, AppState> {
       element = newEmbeddableElement({
         type: "embeddable",
         ...baseElementAttributes,
+      });
+    } else if (elementType === "survey") {
+      element = newSurveyElement({
+        ...baseElementAttributes,
+        question: "Survey Question",
+        options: ["Option 1", "Option 2"],
       });
     } else {
       element = newElement({

@@ -459,6 +459,7 @@ export const TOOL_TYPE = {
   frame: "frame",
   magicframe: "magicframe",
   embeddable: "embeddable",
+  survey: "survey",
   laser: "laser",
 } as const;
 

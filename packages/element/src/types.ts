@@ -22,6 +22,32 @@ export type FillStyle =
   | { type: "hachure"; density?: number }
   | { type: "cross-hatch"; density?: number };
 
+// Survey element types
+export interface SurveyOption {
+  id: string;
+  text: string;
+  votes: number;
+  voters: string[]; // User IDs who voted for this option
+}
+
+export interface VoteData {
+  optionId: string;
+  userId: string;
+  timestamp: number;
+}
+
+export type SurveyElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "survey";
+    question: string;
+    options: SurveyOption[];
+    allowMultipleVotes: boolean;
+    isAnonymous: boolean;
+    votes: VoteData[];
+    createdAt: number;
+    expiresAt?: number;
+  }>;
+
 // Helper functions for working with FillStyle
 export const isHachureFill = (fillStyle: FillStyle): fillStyle is { type: "hachure"; density?: number } => {
   return typeof fillStyle === "object" && fillStyle.type === "hachure";
@@ -48,6 +74,76 @@ export const getFillDensity = (fillStyle: FillStyle): number => {
 
 export const createFillStyle = (type: "hachure" | "cross-hatch", density: number = 1): FillStyle => {
   return { type, density };
+};
+
+// Helper functions for working with Survey elements
+export const isSurveyElement = (element: ExcalidrawElement): element is SurveyElement => {
+  return element.type === "survey";
+};
+
+export const createSurveyOption = (text: string): SurveyOption => {
+  return {
+    id: `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    text,
+    votes: 0,
+    voters: []
+  };
+};
+
+export const createSurveyElement = (
+  base: Omit<_ExcalidrawElementBase, "type">,
+  question: string,
+  options: string[] = []
+): SurveyElement => {
+  return {
+    ...base,
+    type: "survey",
+    question,
+    options: options.map(createSurveyOption),
+    allowMultipleVotes: false,
+    isAnonymous: false,
+    votes: [],
+    createdAt: Date.now()
+  };
+};
+
+export const addVoteToSurvey = (
+  survey: SurveyElement,
+  optionId: string,
+  userId: string
+): SurveyElement => {
+  const vote: VoteData = {
+    optionId,
+    userId,
+    timestamp: Date.now()
+  };
+
+  // Check if user has already voted (if multiple votes not allowed)
+  if (!survey.allowMultipleVotes && survey.votes.some(v => v.userId === userId)) {
+    return survey; // User already voted, return unchanged
+  }
+
+  return {
+    ...survey,
+    votes: [...survey.votes, vote],
+    options: survey.options.map(option => 
+      option.id === optionId 
+        ? { ...option, votes: option.votes + 1, voters: [...option.voters, userId] }
+        : option
+    )
+  };
+};
+
+export const getSurveyResults = (survey: SurveyElement) => {
+  const totalVotes = survey.options.reduce((sum, option) => sum + option.votes, 0);
+  
+  return {
+    totalVotes,
+    results: survey.options.map(option => ({
+      ...option,
+      percentage: totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0
+    }))
+  };
 };
 
 // Backward compatibility: migrate old string fill styles to new format
@@ -153,6 +249,11 @@ export type ExcalidrawDiamondElement = _ExcalidrawElementBase & {
 export type ExcalidrawEllipseElement = _ExcalidrawElementBase & {
   type: "ellipse";
 };
+
+export type ExcalidrawSurveyElement = _ExcalidrawElementBase &
+  Omit<SurveyElement, keyof _ExcalidrawElementBase | "type"> & {
+    type: "survey";
+  };
 
 export type ExcalidrawEmbeddableElement = _ExcalidrawElementBase &
   Readonly<{
@@ -270,7 +371,8 @@ export type ExcalidrawElement =
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
   | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement;
+  | ExcalidrawEmbeddableElement
+  | ExcalidrawSurveyElement;
 
 export type ExcalidrawNonSelectionElement = Exclude<
   ExcalidrawElement,

@@ -49,6 +49,9 @@ export const distanceToElement = (
     case "arrow":
     case "freedraw":
       return distanceToLinearOrFreeDraElement(element, p);
+    case "survey":
+      // Survey elements are treated as rectangles for distance calculation
+      return distanceToRectanguloidElement(element as any, elementsMap, p);
   }
 };
 

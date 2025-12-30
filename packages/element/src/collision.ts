@@ -380,6 +380,15 @@ export const intersectElementWithLineSegment = (
     case "freedraw":
     case "arrow":
       return intersectLinearOrFreeDrawWithLineSegment(element, line, onlyFirst);
+    case "survey":
+      // Survey elements are treated as rectangles for collision detection
+      return intersectRectanguloidWithLineSegment(
+        element as any,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
   }
 };
 

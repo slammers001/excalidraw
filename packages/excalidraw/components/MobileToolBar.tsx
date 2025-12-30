@@ -57,6 +57,11 @@ const SHAPE_TOOLS = [
     icon: EllipseIcon,
     title: capitalizeString(t("toolBar.ellipse")),
   },
+  {
+    type: "survey",
+    icon: TextIcon, // We'll need to create a survey icon later
+    title: capitalizeString(t("toolBar.survey")),
+  },
 ] as const;
 
 const SELECTION_TOOLS = [
@@ -95,7 +100,7 @@ export const MobileToolBar = ({
   const activeTool = app.state.activeTool;
   const [isOtherShapesMenuOpen, setIsOtherShapesMenuOpen] = useState(false);
   const [lastActiveGenericShape, setLastActiveGenericShape] = useState<
-    "rectangle" | "diamond" | "ellipse"
+    "rectangle" | "diamond" | "ellipse" | "survey"
   >("rectangle");
   const [lastActiveLinearElement, setLastActiveLinearElement] = useState<
     "arrow" | "line"
@@ -106,7 +111,8 @@ export const MobileToolBar = ({
     if (
       activeTool.type === "rectangle" ||
       activeTool.type === "diamond" ||
-      activeTool.type === "ellipse"
+      activeTool.type === "ellipse" ||
+      activeTool.type === "survey"
     ) {
       setLastActiveGenericShape(activeTool.type);
     }
@@ -276,6 +282,8 @@ export const MobileToolBar = ({
               ? "toolBar.diamond"
               : lastActiveGenericShape === "ellipse"
               ? "toolBar.ellipse"
+              : lastActiveGenericShape === "survey"
+              ? "toolBar.survey"
               : "toolBar.rectangle",
           ),
         )}
@@ -284,7 +292,8 @@ export const MobileToolBar = ({
           if (
             type === "rectangle" ||
             type === "diamond" ||
-            type === "ellipse"
+            type === "ellipse" ||
+            type === "survey"
           ) {
             setLastActiveGenericShape(type);
             app.setActiveTool({ type });

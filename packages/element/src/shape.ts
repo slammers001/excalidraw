@@ -268,6 +268,9 @@ export const generateRoughOptions = (
     }
     case "arrow":
       return options;
+    case "survey":
+      // Survey elements don't use rough rendering
+      return options;
     default: {
       throw new Error(`Unimplemented type ${element.type}`);
     }
@@ -860,6 +863,11 @@ const generateElementShape = (
       // `element.canvas` on rerenders
       return shape;
     }
+    case "survey": {
+      // Survey elements don't use rough shapes, they're rendered directly
+      const shape: any = null;
+      return shape;
+    }
     default: {
       assertNever(
         element,
@@ -988,6 +996,9 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
         shouldTestInside(element),
       );
     }
+    case "survey":
+      // Survey elements are treated as rectangles for shape calculation
+      return getPolygonShape(element as any);
   }
 };
 

@@ -95,7 +95,7 @@ export * from "./textWrapping";
 export * from "./transform";
 export * from "./transformHandles";
 export * from "./typeChecks";
-export type { FillStyle } from "./types";
+export type { FillStyle, SurveyElement, SurveyOption, VoteData } from "./types";
 export {
   isHachureFill,
   isCrossHatchFill,
@@ -104,6 +104,11 @@ export {
   getFillDensity,
   createFillStyle,
   migrateFillStyle,
+  isSurveyElement,
+  createSurveyOption,
+  createSurveyElement,
+  addVoteToSurvey,
+  getSurveyResults,
 } from "./types";
 export * from "./utils";
 export * from "./zindex";

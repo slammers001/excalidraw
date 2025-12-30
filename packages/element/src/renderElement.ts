@@ -24,6 +24,11 @@ import {
   invariant,
 } from "@excalidraw/common";
 
+import {
+  isSurveyElement,
+  getSurveyResults,
+} from "./types";
+
 import type {
   AppState,
   StaticCanvasAppState,
@@ -1015,6 +1020,93 @@ export const renderElement = (
         // reset
         context.imageSmoothingEnabled = currentImageSmoothingStatus;
       }
+      break;
+    }
+    case "survey": {
+      // Render survey element as a custom HTML-like element
+      context.save();
+      context.translate(element.x + appState.scrollX, element.y + appState.scrollY);
+      
+      // Draw background
+      context.fillStyle = "#ffffff";
+      context.strokeStyle = "#000000";
+      context.lineWidth = 2 / appState.zoom.value;
+      
+      // Draw rounded rectangle
+      const radius = 8 / appState.zoom.value;
+      context.beginPath();
+      context.moveTo(radius, 0);
+      context.lineTo(element.width - radius, 0);
+      context.quadraticCurveTo(element.width, 0, element.width, radius);
+      context.lineTo(element.width, element.height - radius);
+      context.quadraticCurveTo(element.width, element.height, element.width - radius, element.height);
+      context.lineTo(radius, element.height);
+      context.quadraticCurveTo(0, element.height, 0, element.height - radius);
+      context.lineTo(0, radius);
+      context.quadraticCurveTo(0, 0, radius, 0);
+      context.closePath();
+      
+      context.fill();
+      context.stroke();
+      
+      // Draw question text
+      context.fillStyle = "#000000";
+      context.font = `${18 / appState.zoom.value}px Virgil, Segoe UI Emoji, sans-serif`;
+      context.textAlign = "center";
+      context.fillText(element.question, element.width / 2, 30 / appState.zoom.value);
+      
+      // Draw options
+      context.font = `${16 / appState.zoom.value}px Virgil, Segoe UI Emoji, sans-serif`;
+      context.textAlign = "left";
+      
+      const results = getSurveyResults(element);
+      element.options.forEach((option, index) => {
+        const y = 60 / appState.zoom.value + (index * 40 / appState.zoom.value);
+        
+        // Draw option background
+        context.fillStyle = "#f8f9fa";
+        context.fillRect(10 / appState.zoom.value, y - 15 / appState.zoom.value, 
+                       element.width - 20 / appState.zoom.value, 30 / appState.zoom.value);
+        
+        // Draw progress bar if there are votes
+        if (results.totalVotes > 0) {
+          const optionResult = results.results.find(r => r.id === option.id);
+          if (optionResult) {
+            context.fillStyle = "#007bff";
+            context.globalAlpha = 0.2;
+            context.fillRect(10 / appState.zoom.value, y - 15 / appState.zoom.value,
+                           (element.width - 20 / appState.zoom.value) * (optionResult.percentage / 100), 
+                           30 / appState.zoom.value);
+            context.globalAlpha = 1;
+          }
+        }
+        
+        // Draw option text and vote count
+        context.fillStyle = "#000000";
+        context.fillText(option.text, 15 / appState.zoom.value, y + 5 / appState.zoom.value);
+        
+        if (results.totalVotes > 0) {
+          const optionResult = results.results.find(r => r.id === option.id);
+          if (optionResult) {
+            context.font = `${14 / appState.zoom.value}px Virgil, Segoe UI Emoji, sans-serif`;
+            context.fillStyle = "#6c757d";
+            context.textAlign = "right";
+            context.fillText(`${option.votes} (${optionResult.percentage.toFixed(1)}%)`, 
+                           element.width - 15 / appState.zoom.value, y + 5 / appState.zoom.value);
+            context.textAlign = "left";
+            context.font = `${16 / appState.zoom.value}px Virgil, Segoe UI Emoji, sans-serif`;
+          }
+        }
+      });
+      
+      // Draw vote count
+      context.font = `${12 / appState.zoom.value}px Virgil, Segoe UI Emoji, sans-serif`;
+      context.fillStyle = "#6c757d";
+      context.textAlign = "center";
+      context.fillText(`${results.totalVotes} ${results.totalVotes === 1 ? "vote" : "votes"}`, 
+                       element.width / 2, element.height - 15 / appState.zoom.value);
+      
+      context.restore();
       break;
     }
     default: {
