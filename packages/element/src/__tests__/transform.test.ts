@@ -79,7 +79,7 @@ describe("Test Transform", () => {
         backgroundColor: "#a5d8ff",
         strokeColor: "#1971c2",
         strokeStyle: "dashed",
-        fillStyle: "cross-hatch",
+        fillStyle: { type: "cross-hatch", density: 1 },
         strokeWidth: 2,
       },
     ];

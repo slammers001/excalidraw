@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill Density Debug</title>
+    <script src="https://unpkg.com/roughjs@4.5.2/bundled/rough.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .density-info {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Fill Density Debug Test</h1>
+    
+    <div class="test-container">
+        <h2>Testing RoughJS Fill Patterns</h2>
+        
+        <div class="test-case">
+            <h3>Density 0.1 (Very Sparse)</h3>
+            <canvas id="canvas1" width="200" height="150"></canvas>
+            <div class="density-info">
+                fillStyle: { type: "hachure", density: 0.1 }<br>
+                hachureGap: 8 / 0.1 = 80
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Density 1.0 (Default)</h3>
+            <canvas id="canvas2" width="200" height="150"></canvas>
+            <div class="density-info">
+                fillStyle: { type: "hachure", density: 1.0 }<br>
+                hachureGap: 8 / 1.0 = 8
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Density 3.0 (Very Dense)</h3>
+            <canvas id="canvas3" width="200" height="150"></canvas>
+            <div class="density-info">
+                fillStyle: { type: "hachure", density: 3.0 }<br>
+                hachureGap: 8 / 3.0 = 2.67
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Cross-Hatch Density 1.0</h3>
+            <canvas id="canvas4" width="200" height="150"></canvas>
+            <div class="density-info">
+                fillStyle: { type: "cross-hatch", density: 1.0 }<br>
+                hachureGap: 8 / 1.0 = 8
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testFillPattern(canvasId, fillStyle, backgroundColor = "#fa5252") {
+            const canvas = document.getElementById(canvasId);
+            const rc = rough.canvas(canvas);
+            
+            const options = {
+                fill: backgroundColor,
+                stroke: "#000000",
+                strokeWidth: 1,
+                roughness: 1
+            };
+            
+            // Apply fill style settings
+            if (fillStyle.type === "hachure") {
+                options.fillStyle = "hachure";
+                options.hachureAngle = 60;
+                options.hachureGap = 8 / fillStyle.density;
+                console.log(`Hachure gap: ${options.hachureGap} (density: ${fillStyle.density})`);
+            } else if (fillStyle.type === "cross-hatch") {
+                options.fillStyle = "cross-hatch";
+                options.hachureAngle = 60;
+                options.hachureGap = 8 / fillStyle.density;
+                console.log(`Cross-hatch gap: ${options.hachureGap} (density: ${fillStyle.density})`);
+            }
+            
+            // Draw rectangle
+            rc.rectangle(50, 50, 100, 80, options);
+            
+            console.log(`Canvas ${canvasId}:`, fillStyle, options);
+        }
+        
+        // Test all patterns when page loads
+        window.onload = function() {
+            testFillPattern("canvas1", { type: "hachure", density: 0.1 });
+            testFillPattern("canvas2", { type: "hachure", density: 1.0 });
+            testFillPattern("canvas3", { type: "hachure", density: 3.0 });
+            testFillPattern("canvas4", { type: "cross-hatch", density: 1.0 });
+            
+            console.log("Fill density test loaded - check console for gap calculations");
+        };
+    </script>
+</body>
+</html>

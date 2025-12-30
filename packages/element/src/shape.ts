@@ -71,6 +71,7 @@ import type {
   ElementsMap,
   ExcalidrawLineElement,
 } from "./types";
+import { isHachureFill, isCrossHatchFill, getFillDensity, migrateFillStyle } from "./types";
 
 import type { Drawable, Options } from "roughjs/bin/core";
 import type { Point as RoughPoint } from "roughjs/bin/geometry";
@@ -215,7 +216,22 @@ export const generateRoughOptions = (
     case "embeddable":
     case "diamond":
     case "ellipse": {
-      options.fillStyle = element.fillStyle;
+      // Apply backward compatibility migration
+      const fillStyle = migrateFillStyle(element.fillStyle);
+      
+      // Convert new FillStyle type to roughjs format
+      if (isHachureFill(fillStyle)) {
+        options.fillStyle = "hachure";
+        options.hachureAngle = 60;
+        options.hachureGap = 8 / getFillDensity(fillStyle);
+      } else if (isCrossHatchFill(fillStyle)) {
+        options.fillStyle = "cross-hatch";
+        options.hachureAngle = 60;
+        options.hachureGap = 8 / getFillDensity(fillStyle);
+      } else {
+        options.fillStyle = fillStyle;
+      }
+      
       options.fill = isTransparent(element.backgroundColor)
         ? undefined
         : element.backgroundColor;
@@ -227,7 +243,22 @@ export const generateRoughOptions = (
     case "line":
     case "freedraw": {
       if (isPathALoop(element.points)) {
-        options.fillStyle = element.fillStyle;
+        // Apply backward compatibility migration
+        const fillStyle = migrateFillStyle(element.fillStyle);
+        
+        // Convert new FillStyle type to roughjs format
+        if (isHachureFill(fillStyle)) {
+          options.fillStyle = "hachure";
+          options.hachureAngle = 60;
+          options.hachureGap = 8 / getFillDensity(fillStyle);
+        } else if (isCrossHatchFill(fillStyle)) {
+          options.fillStyle = "cross-hatch";
+          options.hachureAngle = 60;
+          options.hachureGap = 8 / getFillDensity(fillStyle);
+        } else {
+          options.fillStyle = fillStyle;
+        }
+        
         options.fill =
           element.backgroundColor === "transparent"
             ? undefined

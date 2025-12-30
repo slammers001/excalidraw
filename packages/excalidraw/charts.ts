@@ -176,7 +176,7 @@ const bgColors = getAllColorsSpecificShade(DEFAULT_CHART_COLOR_INDEX);
 // Put all the common properties here so when the whole chart is selected
 // the properties dialog shows the correct selected values
 const commonProps = {
-  fillStyle: "hachure",
+  fillStyle: { type: "hachure", density: 1 },
   fontFamily: DEFAULT_FONT_FAMILY,
   fontSize: DEFAULT_FONT_SIZE,
   opacity: 100,

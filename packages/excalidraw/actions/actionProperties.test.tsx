@@ -46,7 +46,7 @@ describe("element locking", () => {
 
       API.setAppState({
         currentItemBackgroundColor: color,
-        currentItemFillStyle: "hachure",
+        currentItemFillStyle: { type: "hachure", density: 1 },
       });
       const hachureFillButton = queryByTestId(document.body, `fill-hachure`);
 
@@ -63,7 +63,7 @@ describe("element locking", () => {
 
       API.setAppState({
         currentItemBackgroundColor: COLOR_PALETTE.transparent,
-        currentItemFillStyle: "hachure",
+        currentItemFillStyle: { type: "hachure", density: 1 },
       });
       const hachureFillButton = queryByTestId(document.body, `fill-hachure`);
 
@@ -87,7 +87,7 @@ describe("element locking", () => {
       const rect = API.createElement({
         type: "rectangle",
         backgroundColor: "red",
-        fillStyle: "cross-hatch",
+        fillStyle: { type: "cross-hatch", density: 1 },
       });
       API.setElements([rect]);
       API.setSelectedElements([rect]);
@@ -100,7 +100,7 @@ describe("element locking", () => {
       const rect = API.createElement({
         type: "rectangle",
         backgroundColor: COLOR_PALETTE.transparent,
-        fillStyle: "cross-hatch",
+        fillStyle: { type: "cross-hatch", density: 1 },
       });
       API.setElements([rect]);
       API.setSelectedElements([rect]);

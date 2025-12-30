@@ -50,6 +50,11 @@ import {
   isLineElement,
   isTextElement,
   isUsingAdaptiveRadius,
+  isHachureFill,
+  isCrossHatchFill,
+  getFillDensity,
+  createFillStyle,
+  migrateFillStyle,
 } from "@excalidraw/element";
 
 import { hasStrokeColor } from "@excalidraw/element";
@@ -482,10 +487,77 @@ export const actionChangeFillStyle = register<ExcalidrawElement["fillStyle"]>({
   },
   PanelComponent: ({ elements, appState, updateData, app }) => {
     const selectedElements = getSelectedElements(elements, appState);
-    const allElementsZigZag =
-      selectedElements.length > 0 &&
-      selectedElements.every((el) => el.fillStyle === "zigzag");
-
+    
+    // Get current fill style and density
+    const currentFillStyle = getFormValue(
+      elements,
+      app,
+      (element) => element.fillStyle as any,
+      (element) => element.hasOwnProperty("fillStyle"),
+      (hasSelection) =>
+        hasSelection ? null : (appState.currentItemFillStyle || "solid"),
+    );
+    
+    // Determine if all elements have the same pattern type
+    const getPatternType = (fillStyle: any) => {
+      const migratedFillStyle = migrateFillStyle(fillStyle);
+      if (isHachureFill(migratedFillStyle)) return "hachure";
+      if (isCrossHatchFill(migratedFillStyle)) return "cross-hatch";
+      if (migratedFillStyle === "zigzag") return "zigzag";
+      if (migratedFillStyle === "solid") return "solid";
+      return null;
+    };
+    
+    const commonPatternType = selectedElements.length > 0 
+      ? selectedElements.reduce((common, el) => {
+          const type = getPatternType(el.fillStyle);
+          return common === null ? type : (common === type ? type : null);
+        }, null as string | null)
+      : getPatternType(currentFillStyle) || null;
+    
+    // Get current density for pattern fills
+    const getCurrentDensity = () => {
+      if (currentFillStyle) {
+        const migratedFillStyle = migrateFillStyle(currentFillStyle);
+        if (isHachureFill(migratedFillStyle) || isCrossHatchFill(migratedFillStyle)) {
+          return getFillDensity(migratedFillStyle);
+        }
+      }
+      return 1;
+    };
+    
+    const [density, setDensity] = useState(getCurrentDensity());
+    
+    // Update density when fill style changes
+    useEffect(() => {
+      setDensity(getCurrentDensity());
+    }, [currentFillStyle]);
+    
+    const handleDensityChange = (newDensity: number) => {
+      setDensity(newDensity);
+      // Always update the current fill style with new density
+      if (currentFillStyle) {
+        const migratedFillStyle = migrateFillStyle(currentFillStyle);
+        if (isHachureFill(migratedFillStyle) || isCrossHatchFill(migratedFillStyle)) {
+          updateData(createFillStyle(migratedFillStyle.type, newDensity));
+        }
+      }
+    };
+    
+    const handleFillStyleChange = (value: string, event?: React.MouseEvent) => {
+      let nextValue: ExcalidrawElement["fillStyle"];
+      
+      if (value === "hachure" || value === "cross-hatch") {
+        nextValue = createFillStyle(value, density);
+      } else if (event?.altKey && value === "hachure" && commonPatternType === "hachure") {
+        nextValue = "zigzag";
+      } else {
+        nextValue = value as "solid" | "zigzag";
+      }
+      
+      updateData(nextValue);
+    };
+    
     return (
       <fieldset>
         <legend>{t("labels.fill")}</legend>
@@ -495,11 +567,8 @@ export const actionChangeFillStyle = register<ExcalidrawElement["fillStyle"]>({
             options={[
               {
                 value: "hachure",
-                text: `${
-                  allElementsZigZag ? t("labels.zigzag") : t("labels.hachure")
-                } (${getShortcutKey("Alt-Click")})`,
-                icon: allElementsZigZag ? FillZigZagIcon : FillHachureIcon,
-                active: allElementsZigZag ? true : undefined,
+                text: t("labels.hachure"),
+                icon: FillHachureIcon,
                 testId: `fill-hachure`,
               },
               {
@@ -515,26 +584,41 @@ export const actionChangeFillStyle = register<ExcalidrawElement["fillStyle"]>({
                 testId: `fill-solid`,
               },
             ]}
-            value={getFormValue(
-              elements,
-              app,
-              (element) => element.fillStyle,
-              (element) => element.hasOwnProperty("fillStyle"),
-              (hasSelection) =>
-                hasSelection ? null : appState.currentItemFillStyle,
-            )}
-            onClick={(value, event) => {
-              const nextValue =
-                event.altKey &&
-                value === "hachure" &&
-                selectedElements.every((el) => el.fillStyle === "hachure")
-                  ? "zigzag"
-                  : value;
-
-              updateData(nextValue);
-            }}
+            value={commonPatternType || "solid"}
+            onClick={handleFillStyleChange}
           />
         </div>
+        
+        {/* Density control for pattern fills */}
+        {(commonPatternType === "hachure" || commonPatternType === "cross-hatch") && (
+          <div style={{ marginTop: "0.5rem" }}>
+            <legend>{"Fill density"}</legend>
+            <div className="range-wrapper">
+              <input
+                type="range"
+                min={0.1}
+                max={2}
+                step={0.1}
+                value={density}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  // Only allow working values: 0.1, 0.2, 0.4, 0.5, 0.8, 1.0, 1.6, 2.0
+                  const workingValues = [0.1, 0.2, 0.4, 0.5, 0.8, 1.0, 1.6, 2.0];
+                  const closestWorking = workingValues.reduce((prev, curr) => 
+                    Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+                  );
+                  handleDensityChange(closestWorking);
+                }}
+                className="range-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--color-secondary)" }}>
+              <span>{"Sparse"}</span>
+              <span>{"Dense"}</span>
+            </div>
+          </div>
+        )}
       </fieldset>
     );
   },

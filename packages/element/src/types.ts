@@ -16,7 +16,64 @@ import type {
 } from "@excalidraw/common/utility-types";
 
 export type ChartType = "bar" | "line";
-export type FillStyle = "hachure" | "cross-hatch" | "solid" | "zigzag";
+export type FillStyle = 
+  | "solid" 
+  | "zigzag"
+  | { type: "hachure"; density?: number }
+  | { type: "cross-hatch"; density?: number };
+
+// Helper functions for working with FillStyle
+export const isHachureFill = (fillStyle: FillStyle): fillStyle is { type: "hachure"; density?: number } => {
+  return typeof fillStyle === "object" && fillStyle.type === "hachure";
+};
+
+export const isCrossHatchFill = (fillStyle: FillStyle): fillStyle is { type: "cross-hatch"; density?: number } => {
+  return typeof fillStyle === "object" && fillStyle.type === "cross-hatch";
+};
+
+export const isSolidFill = (fillStyle: FillStyle): fillStyle is "solid" => {
+  return fillStyle === "solid";
+};
+
+export const isZigzagFill = (fillStyle: FillStyle): fillStyle is "zigzag" => {
+  return fillStyle === "zigzag";
+};
+
+export const getFillDensity = (fillStyle: FillStyle): number => {
+  if (typeof fillStyle === "object" && fillStyle.density !== undefined) {
+    return fillStyle.density;
+  }
+  return 1; // Default density
+};
+
+export const createFillStyle = (type: "hachure" | "cross-hatch", density: number = 1): FillStyle => {
+  return { type, density };
+};
+
+// Backward compatibility: migrate old string fill styles to new format
+export const migrateFillStyle = (fillStyle: any): FillStyle => {
+  if (typeof fillStyle === "string") {
+    switch (fillStyle) {
+      case "hachure":
+        return { type: "hachure", density: 1 };
+      case "cross-hatch":
+        return { type: "cross-hatch", density: 1 };
+      case "solid":
+      case "zigzag":
+        return fillStyle;
+      default:
+        return "solid";
+    }
+  }
+  
+  // Already in new format or invalid, return as-is or default
+  if (fillStyle && typeof fillStyle === "object" && 
+      (fillStyle.type === "hachure" || fillStyle.type === "cross-hatch")) {
+    return fillStyle;
+  }
+  
+  return "solid";
+};
 export type FontFamilyKeys = keyof typeof FONT_FAMILY;
 export type FontFamilyValues = typeof FONT_FAMILY[FontFamilyKeys];
 export type Theme = typeof THEME[keyof typeof THEME];

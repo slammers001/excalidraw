@@ -95,5 +95,15 @@ export * from "./textWrapping";
 export * from "./transform";
 export * from "./transformHandles";
 export * from "./typeChecks";
+export type { FillStyle } from "./types";
+export {
+  isHachureFill,
+  isCrossHatchFill,
+  isSolidFill,
+  isZigzagFill,
+  getFillDensity,
+  createFillStyle,
+  migrateFillStyle,
+} from "./types";
 export * from "./utils";
 export * from "./zindex";
