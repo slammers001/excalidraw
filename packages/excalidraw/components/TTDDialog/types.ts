@@ -53,6 +53,24 @@ export interface SavedChat {
   timestamp: number;
 }
 
+export type SavedChats = SavedChat[];
+
+/**
+ * Interface for TTD chat persistence. Preferably should be stable
+ * (e.g. static class/singleton)
+ */
+export interface TTDPersistenceAdapter {
+  /**
+   * Load saved chats from storage.
+   */
+  loadChats(): Promise<SavedChats>;
+
+  /**
+   * Save chats to storage.
+   */
+  saveChats(chats: SavedChats): Promise<void>;
+}
+
 export interface MermaidToExcalidrawLibProps {
   loaded: boolean;
   api: Promise<{
@@ -64,6 +82,11 @@ export interface MermaidToExcalidrawLibProps {
 }
 
 export namespace TTTDDialog {
+  export type OnGenerate = (opts: {
+    prompt: string;
+    isRepairFlow?: boolean;
+  }) => Promise<void>;
+
   export type OnTextSubmitProps = {
     messages: LLMMessage[];
     onChunk?: (chunk: string) => void;

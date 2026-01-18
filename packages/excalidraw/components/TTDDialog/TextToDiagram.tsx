@@ -25,18 +25,25 @@ import { TTDPreviewPanel } from "./TTDPreviewPanel";
 import { getLastAssistantMessage } from "./utils/chat";
 
 import type { BinaryFiles } from "../../types";
-import type { MermaidToExcalidrawLibProps, TChat, TTTDDialog } from "./types";
+import type {
+  MermaidToExcalidrawLibProps,
+  TChat,
+  TTDPersistenceAdapter,
+  TTTDDialog,
+} from "./types";
 
 const TextToDiagramContent = ({
   mermaidToExcalidrawLib,
   onTextSubmit,
   renderWarning,
+  persistenceAdapter,
 }: {
   mermaidToExcalidrawLib: MermaidToExcalidrawLibProps;
   onTextSubmit: (
     props: TTTDDialog.OnTextSubmitProps,
   ) => Promise<TTTDDialog.OnTextSubmitRetValue>;
   renderWarning?: TTTDDialog.renderWarning;
+  persistenceAdapter: TTDPersistenceAdapter;
 }) => {
   const app = useApp();
   const setAppState = useExcalidrawSetAppState();
@@ -46,7 +53,7 @@ const TextToDiagramContent = ({
   const [chatHistory, setChatHistory] = useAtom(chatHistoryAtom);
   const showPreview = useAtomValue(showPreviewAtom);
 
-  const { savedChats } = useTTDChatStorage();
+  const { savedChats } = useTTDChatStorage({ persistenceAdapter });
 
   const lastAssistantMessage = getLastAssistantMessage(chatHistory);
 
@@ -68,7 +75,7 @@ const TextToDiagramContent = ({
     handleNewChat,
     handleMenuToggle,
     handleMenuClose,
-  } = useChatManagement();
+  } = useChatManagement({ persistenceAdapter });
 
   const onViewAsMermaid = () => {
     if (typeof lastAssistantMessage?.content === "string") {
@@ -131,7 +138,7 @@ const TextToDiagramContent = ({
 
     const repairPrompt = `Fix the error in this Mermaid diagram. The diagram is:\n\n\`\`\`mermaid\n${mermaidContent}\n\`\`\`\n\nThe exception/error is: ${errorMessage}\n\nPlease fix the Mermaid syntax and regenerate a valid diagram.`;
 
-    await onGenerate(repairPrompt, true);
+    await onGenerate({ prompt: repairPrompt, isRepairFlow: true });
   };
 
   const handleRetry = async (message: TChat.ChatMessage) => {
@@ -141,9 +148,15 @@ const TextToDiagramContent = ({
 
     if (messageIndex > 0) {
       const previousMessage = chatHistory.messages[messageIndex - 1];
-      if (previousMessage.type === "user" && previousMessage.content) {
+      if (
+        previousMessage.type === "user" &&
+        typeof previousMessage.content === "string"
+      ) {
         setLastRetryAttempt();
-        await onGenerate(previousMessage.content, true);
+        await onGenerate({
+          prompt: previousMessage.content,
+          isRepairFlow: true,
+        });
       }
     }
   };
@@ -188,7 +201,7 @@ const TextToDiagramContent = ({
         messages={chatHistory.messages}
         currentPrompt={chatHistory.currentPrompt}
         onPromptChange={handlePromptChange}
-        onSendMessage={onGenerate}
+        onGenerate={onGenerate}
         isGenerating={lastAssistantMessage?.isGenerating ?? false}
         generatedResponse={lastAssistantMessage?.content}
         isMenuOpen={isMenuOpen}
@@ -225,18 +238,21 @@ export const TextToDiagram = ({
   mermaidToExcalidrawLib,
   onTextSubmit,
   renderWarning,
+  persistenceAdapter,
 }: {
   mermaidToExcalidrawLib: MermaidToExcalidrawLibProps;
   onTextSubmit(
     props: TTTDDialog.OnTextSubmitProps,
   ): Promise<TTTDDialog.OnTextSubmitRetValue>;
   renderWarning?: TTTDDialog.renderWarning;
+  persistenceAdapter: TTDPersistenceAdapter;
 }) => {
   return (
     <TextToDiagramContent
       mermaidToExcalidrawLib={mermaidToExcalidrawLib}
       onTextSubmit={onTextSubmit}
       renderWarning={renderWarning}
+      persistenceAdapter={persistenceAdapter}
     />
   );
 };
