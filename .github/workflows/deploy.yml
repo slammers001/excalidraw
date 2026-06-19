@@ -1,7 +1,7 @@
-name: Deploy to GitHub Pages
+name: Deploy Excalidraw to GitHub Pages
 
 on:
-  workflow_dispatch:   # 👈 lets you manually run it from GitHub UI
+  workflow_dispatch:   # manual run button
   push:
     branches:
       - main
@@ -23,17 +23,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Enable Corepack (Yarn support)
+        run: corepack enable
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: yarn
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install --frozen-lockfile
 
       - name: Build project
-        run: npm run build
+        run: yarn build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -41,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist   # ⚠️ change to "build" if your project uses CRA
+          path: dist   # ⚠️ change to "build" ONLY if your repo outputs CRA build folder
 
   deploy:
     needs: build
