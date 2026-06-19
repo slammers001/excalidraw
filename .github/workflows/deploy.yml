@@ -1,6 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
+  workflow_dispatch:   # 👈 lets you manually run it from GitHub UI
   push:
     branches:
       - main
@@ -40,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: dist   # ⚠️ change to "build" if your project uses CRA
 
   deploy:
     needs: build
