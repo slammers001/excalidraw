@@ -64,6 +64,7 @@ export const SHAPES = [
     key: KEYS.S,
     numericKey: KEYS["5"],
     fillable: true,
+    toolbar: true,
   },
   {
     icon: ArrowIcon,
