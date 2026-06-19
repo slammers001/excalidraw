@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
   const envVars = loadEnv(mode, `../`);
   // https://vitejs.dev/config/
   return {
+    base: mode === 'production' ? '/excalidraw/' : '/',
     server: {
       port: Number(envVars.VITE_APP_PORT || 3000),
       // open the browser
@@ -115,7 +116,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       Sitemap({
-        hostname: "https://excalidraw.com",
+        hostname: "https://slammers001.github.io/excalidraw",
         outDir: "build",
         changefreq: "monthly",
         // its static in public folder
@@ -138,6 +139,7 @@ export default defineConfig(({ mode }) => {
       ViteEjsPlugin(),
       VitePWA({
         registerType: "autoUpdate",
+        base: mode === 'production' ? '/excalidraw/' : '/',
         devOptions: {
           /* set this flag to true to enable in Development mode */
           enabled: envVars.VITE_APP_ENABLE_PWA === "true",
