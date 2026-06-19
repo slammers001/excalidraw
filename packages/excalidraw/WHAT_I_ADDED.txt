@@ -1,0 +1,2 @@
+1) When shading in a background, you can now choose the density of the shading
+2) Hosted on my github pages at https://slammers001.github.io/excalidraw/
