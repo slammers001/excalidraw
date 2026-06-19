@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist   # ⚠️ change to "build" ONLY if your repo outputs CRA build folder
+          path: excalidraw-app/build
 
   deploy:
     needs: build
