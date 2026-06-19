@@ -1,7 +1,7 @@
 name: Deploy Excalidraw to GitHub Pages
 
 on:
-  workflow_dispatch:   # manual run button
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -35,7 +35,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      # 🔥 IMPORTANT FIX: build inside correct folder
       - name: Build project
+        working-directory: excalidraw-app
         run: yarn build
 
       - name: Setup Pages
